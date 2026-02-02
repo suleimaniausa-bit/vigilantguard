@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virus Scanner - Educational Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-2">Virus Scanner</h1>
+            <p class="text-gray-300 text-lg">Educational Demonstration Tool for System Threat Detection</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Panel - Scanner Controls -->
+            <div class="lg:col-span-2">
+                <div class="bg-slate-700 rounded-lg p-6 shadow-xl">
+                    <!-- Scan Type Selection -->
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-white mb-4">Scan Configuration</h2>
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <button id="quickScanBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                                Quick Scan
+                            </button>
+                            <button id="systemScanBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                                System32 Scan
+                            </button>
+                            <button id="fullScanBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                                Full System Scan
+                            </button>
+                            <button id="stopScanBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200 disabled opacity-50" disabled>
+                                Stop Scan
+                            </button>
+                        </div>
+
+                        <!-- Windows Directory Selection -->
+                        <div class="mb-4">
+                            <label class="block text-white font-semibold mb-2">Quick Directory Scan</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button class="directoryScanBtn bg-slate-600 hover:bg-slate-500 text-white text-sm py-2 px-3 rounded transition duration-200" data-path="C:\\Windows\\System32">
+                                    System32
+                                </button>
+                                <button class="directoryScanBtn bg-slate-600 hover:bg-slate-500 text-white text-sm py-2 px-3 rounded transition duration-200" data-path="C:\\Program Files">
+                                    Program Files
+                                </button>
+                                <button class="directoryScanBtn bg-slate-600 hover:bg-slate-500 text-white text-sm py-2 px-3 rounded transition duration-200" data-path="C:\\Users\\AppData\\Local">
+                                    AppData Local
+                                </button>
+                                <button class="directoryScanBtn bg-slate-600 hover:bg-slate-500 text-white text-sm py-2 px-3 rounded transition duration-200" data-path="C:\\Users\\Downloads">
+                                    Downloads
+                                </button>
+                                <button class="directoryScanBtn bg-slate-600 hover:bg-slate-500 text-white text-sm py-2 px-3 rounded transition duration-200" data-path="C:\\ProgramData">
+                                    ProgramData
+                                </button>
+                                <button class="directoryScanBtn bg-slate-600 hover:bg-slate-500 text-white text-sm py-2 px-3 rounded transition duration-200" data-path="C:\\Windows\\Drivers">
+                                    Drivers
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Custom Path Input -->
+                        <div id="customPathContainer" class="hidden mb-4">
+                            <input type="text" id="customPath" placeholder="Enter path to scan (e.g., /home/user/Downloads)" 
+                                   class="w-full px-4 py-2 rounded bg-slate-600 text-white placeholder-gray-400 border border-slate-500">
+                            <button id="startCustomScanBtn" class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                                Start Custom Scan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div class="bg-slate-800 rounded p-4 mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-white font-semibold">Scan Progress</h3>
+                            <span id="progressPercent" class="text-blue-400 font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-600 rounded-full h-3 overflow-hidden">
+                            <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-cyan-500 h-full rounded-full transition-all duration-300 w-0"></div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 mt-4 text-sm">
+                            <div class="text-center">
+                                <div id="filesScanned" class="text-2xl font-bold text-blue-400">0</div>
+                                <div class="text-gray-400">Files Scanned</div>
+                            </div>
+                            <div class="text-center">
+                                <div id="threatsFound" class="text-2xl font-bold text-red-400">0</div>
+                                <div class="text-gray-400">Threats Found</div>
+                            </div>
+                            <div class="text-center">
+                                <div id="cleanFiles" class="text-2xl font-bold text-green-400">0</div>
+                                <div class="text-gray-400">Clean Files</div>
+                            </div>
+                            <div class="text-center">
+                                <div id="scanTime" class="text-2xl font-bold text-yellow-400">0s</div>
+                                <div class="text-gray-400">Scan Time</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current File Scanning -->
+                    <div class="bg-slate-800 rounded p-4">
+                        <h3 class="text-white font-semibold mb-2">Current File</h3>
+                        <div id="currentFile" class="text-gray-400 text-sm truncate">Waiting to start scan...</div>
+                        <div class="mt-3 flex items-center gap-2">
+                            <div class="animate-spin h-4 w-4 border-2 border-blue-500 border-transparent border-t-blue-500 rounded-full" id="spinner"></div>
+                            <span id="scanStatus" class="text-gray-400 text-sm">Ready to scan</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - System Stats & Info -->
+            <div class="lg:col-span-1">
+                <div class="bg-slate-700 rounded-lg p-6 shadow-xl mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">System Information</h2>
+                    <div class="space-y-3 text-sm">
+                        <div class="bg-slate-800 rounded p-3">
+                            <div class="text-gray-400">OS</div>
+                            <div id="osInfo" class="text-blue-400 font-semibold">Detecting...</div>
+                        </div>
+                        <div class="bg-slate-800 rounded p-3">
+                            <div class="text-gray-400">Scan Engine</div>
+                            <div class="text-green-400 font-semibold">v1.0.0</div>
+                        </div>
+                        <div class="bg-slate-800 rounded p-3">
+                            <div class="text-gray-400">Signature Database</div>
+                            <div class="text-purple-400 font-semibold">2024.02.01</div>
+                        </div>
+                        <div class="bg-slate-800 rounded p-3">
+                            <div class="text-gray-400">Last Full Scan</div>
+                            <div id="lastScan" class="text-yellow-400 font-semibold">Never</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Threat Legend -->
+                <div class="bg-slate-700 rounded-lg p-6 shadow-xl">
+                    <h2 class="text-2xl font-bold text-white mb-4">Threat Types</h2>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <span class="text-gray-300">Malware</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                            <span class="text-gray-300">PUP (Unwanted Software)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <span class="text-gray-300">Suspicious Activity</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span class="text-gray-300">Clean</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Threats Found Section -->
+        <div class="mt-8 bg-slate-700 rounded-lg p-6 shadow-xl">
+            <h2 class="text-2xl font-bold text-white mb-4">Detected Threats</h2>
+            <div id="threatsList" class="space-y-2 max-h-96 overflow-y-auto">
+                <div class="text-gray-400 text-center py-8">No threats detected yet. Run a scan to begin.</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center text-gray-400 text-sm">
+            <p>⚠️ This is an educational tool for learning purposes only. It does not provide real protection.</p>
+        </div>
+    </div>
+
+    <script>
+        // Virus Signature Database (Educational)
+        const virusSignatures = [
+            { name: 'Trojan.Generic.1', type: 'malware', pattern: /trojan|backdoor|payload/i, riskLevel: 'critical' },
+            { name: 'Worm.AutoRun', type: 'malware', pattern: /worm|autorun|autoexec/i, riskLevel: 'critical' },
+            { name: 'Win32.Adware', type: 'pup', pattern: /adware|advertising|banner|popup|sponsor/i, riskLevel: 'high' },
+            { name: 'PUP.Unwanted', type: 'pup', pattern: /unwanted|toolbar|extension|plugin|browser.hijack/i, riskLevel: 'medium' },
+            { name: 'Suspicious.Heur', type: 'suspicious', pattern: /suspicious|heuristic|behavior|anomaly/i, riskLevel: 'medium' },
+            { name: 'Ransomware.Crypto', type: 'malware', pattern: /ransomware|crypto|encrypt|crypt|bitcoin/i, riskLevel: 'critical' },
+            { name: 'Rootkit.Generic', type: 'malware', pattern: /rootkit|kernel|privilege|escalation|admin/i, riskLevel: 'critical' },
+            { name: 'Spyware.Monitor', type: 'suspicious', pattern: /spyware|keylog|monitor|surveillance|tracking/i, riskLevel: 'high' },
+        ];
+
+        // Windows System Files Database
+        const windowsSystemFiles = {
+            'C:\\Windows\\System32': [
+                'kernel32.dll', 'ntdll.dll', 'msvcrt.dll', 'advapi32.dll', 'user32.dll',
+                'gdi32.dll', 'shell32.dll', 'ole32.dll', 'oleaut32.dll', 'rpcrt4.dll',
+                'svchost.exe', 'lsass.exe', 'csrss.exe', 'services.exe', 'winlogon.exe',
+                'explorer.exe', 'notepad.exe', 'calc.exe', 'mspaint.exe', 'wordpad.exe',
+                'update_trojan.exe', 'rootkit_patch.sys', 'crypto_payment.exe', 'monitor.exe'
+            ],
+            'C:\\Program Files': [
+                'Google\\Chrome\\chrome.exe', 'Mozilla Firefox\\firefox.exe', 
+                'Microsoft Office\\WINWORD.EXE', 'Microsoft Office\\EXCEL.EXE',
+                '7-Zip\\7z.exe', 'VLC\\vlc.exe', 'Adobe\\Acrobat\\acrobat.exe',
+                'setup_unwanted.exe', 'adware_install.exe', 'banner.exe'
+            ],
+            'C:\\Users\\AppData\\Local': [
+                'Temp\\cache.tmp', 'Temp\\random.tmp', 'Temp\\update_malware.exe',
+                'Microsoft\\Windows\\IECache\\file1.tmp', 'Google\\Chrome\\Cache\\data_001',
+                'Mozilla\\Firefox\\Profiles\\cache.bin', 'Temp\\trojan_payload.exe'
+            ],
+            'C:\\Users\\Downloads': [
+                'document.pdf', 'image.jpg', 'video.mp4', 'archive.zip', 
+                'setup.exe', 'installer.msi', 'game.iso',
+                'worm_infected.exe', 'ransomware_crypto.exe', 'unwanted_toolbar.exe'
+            ],
+            'C:\\ProgramData': [
+                'Microsoft\\Windows\\Caches\\data.dat', 'Windows\\DeviceMetrics.dat',
+                'rootkit_driver.sys', 'suspicious_service.exe', 'bitcoin_miner.exe'
+            ],
+            'C:\\Windows\\Drivers': [
+                'etc\\hosts', 'etc\\services', 'etc\\protocol',
+                'ntfs.sys', 'fat32.sys', 'atapi.sys',
+                'rootkit.sys', 'keylogger_driver.sys', 'privilege_escalation.sys'
+            ]
+        };
+
+        function getWindowsFiles() {
+            let files = [];
+            for (const [path, filenames] of Object.entries(windowsSystemFiles)) {
+                files = files.concat(filenames.map(f => path + '\\' + f));
+            }
+            return files;
+        }
+
+        // Simulated file system for demonstration
+        const simulatedFiles = getWindowsFiles();
+
+        let isScanning = false;
+        let startTime = 0;
+        let filesScannedCount = 0;
+        let threatsCount = 0;
+        let cleanCount = 0;
+        const detectedThreats = [];
+
+        // Detect OS
+        function detectOS() {
+            const ua = navigator.userAgent;
+            if (ua.indexOf('Win') > -1) return 'Windows 10/11';
+            if (ua.indexOf('Mac') > -1) return 'macOS';
+            if (ua.indexOf('Linux') > -1) return 'Linux';
+            return 'Unknown';
+        }
+
+        document.getElementById('osInfo').textContent = detectOS();
+
+        // Scan a single file
+        function scanFile(filename) {
+            let threat = null;
+            
+            for (const sig of virusSignatures) {
+                if (sig.pattern.test(filename)) {
+                    threat = {
+                        file: filename,
+                        name: sig.name,
+                        type: sig.type,
+                        riskLevel: sig.riskLevel,
+                        scanTime: new Date().toLocaleTimeString()
+                    };
+                    break;
+                }
+            }
+
+            return threat;
+        }
+
+        // Update UI statistics
+        function updateStats() {
+            document.getElementById('filesScanned').textContent = filesScannedCount;
+            document.getElementById('threatsFound').textContent = threatsCount;
+            document.getElementById('cleanFiles').textContent = cleanCount;
+            
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('scanTime').textContent = elapsed + 's';
+        }
+
+        // Display detected threat
+        function displayThreat(threat) {
+            const threatsList = document.getElementById('threatsList');
+            
+            if (threatsList.children.length === 1 && threatsList.children[0].textContent.includes('No threats')) {
+                threatsList.innerHTML = '';
+            }
+
+            const threatElement = document.createElement('div');
+            const riskColor = threat.riskLevel === 'critical' ? 'bg-red-900 border-red-500' : 
+                            threat.riskLevel === 'high' ? 'bg-orange-900 border-orange-500' : 'bg-yellow-900 border-yellow-500';
+            
+            threatElement.className = `p-3 rounded border ${riskColor} text-white text-sm`;
+            threatElement.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-bold">${threat.name}</div>
+                        <div class="text-gray-300 text-xs mt-1">File: ${threat.file}</div>
+                        <div class="text-gray-400 text-xs">Risk: ${threat.riskLevel.toUpperCase()}</div>
+                    </div>
+                    <div class="text-xs text-gray-300">${threat.scanTime}</div>
+                </div>
+            `;
+            
+            threatsList.insertBefore(threatElement, threatsList.firstChild);
+            
+            // Keep only last 20 threats visible
+            while (threatsList.children.length > 20) {
+                threatsList.removeChild(threatsList.lastChild);
+            }
+        }
+
+        // Perform scan animation
+        async function performScan(files) {
+            if (isScanning) return;
+            
+            isScanning = true;
+            filesScannedCount = 0;
+            threatsCount = 0;
+            cleanCount = 0;
+            detectedThreats.length = 0;
+            startTime = Date.now();
+            document.getElementById('threatsList').innerHTML = '<div class="text-gray-400 text-center py-8">Scanning...</div>';
+            
+            document.getElementById('quickScanBtn').disabled = true;
+            document.getElementById('fullScanBtn').disabled = true;
+            document.getElementById('customScanBtn').disabled = true;
+            document.getElementById('stopScanBtn').disabled = false;
+            document.getElementById('scanStatus').textContent = 'Scanning system...';
+            document.getElementById('spinner').style.display = 'block';
+
+            const totalFiles = files.length;
+
+            for (let i = 0; i < totalFiles; i++) {
+                if (!isScanning) break;
+
+                const file = files[i];
+                document.getElementById('currentFile').textContent = file;
+                
+                // Simulate scan delay
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 100));
+
+                const threat = scanFile(file);
+                
+                filesScannedCount++;
+                
+                if (threat) {
+                    threatsCount++;
+                    detectedThreats.push(threat);
+                    displayThreat(threat);
+                } else {
+                    cleanCount++;
+                }
+
+                // Update progress bar
+                const progress = (filesScannedCount / totalFiles) * 100;
+                document.getElementById('progressBar').style.width = progress + '%';
+                document.getElementById('progressPercent').textContent = Math.floor(progress) + '%';
+                
+                updateStats();
+            }
+
+            completeScan();
+        }
+
+        function completeScan() {
+            isScanning = false;
+            document.getElementById('quickScanBtn').disabled = false;
+            document.getElementById('fullScanBtn').disabled = false;
+            document.getElementById('customScanBtn').disabled = false;
+            document.getElementById('stopScanBtn').disabled = true;
+            document.getElementById('spinner').style.display = 'none';
+
+            if (threatsCount === 0) {
+                document.getElementById('scanStatus').textContent = 'Scan complete - No threats detected!';
+                document.getElementById('threatsList').innerHTML = '<div class="bg-green-900 border border-green-500 text-green-200 p-4 rounded text-center">✓ System is clean!</div>';
+            } else {
+                document.getElementById('scanStatus').textContent = `Scan complete - ${threatsCount} threat(s) found!`;
+            }
+
+            document.getElementById('lastScan').textContent = new Date().toLocaleString();
+        }
+
+        // Event Listeners
+        document.getElementById('quickScanBtn').addEventListener('click', () => {
+            performScan(simulatedFiles.slice(0, 20));
+        });
+
+        document.getElementById('systemScanBtn').addEventListener('click', () => {
+            const systemFiles = windowsSystemFiles['C:\\Windows\\System32'];
+            performScan(systemFiles.map(f => 'C:\\Windows\\System32\\' + f));
+        });
+
+        document.getElementById('fullScanBtn').addEventListener('click', () => {
+            performScan(simulatedFiles);
+        });
+
+        // Directory scan buttons
+        document.querySelectorAll('.directoryScanBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const path = btn.dataset.path;
+                const files = windowsSystemFiles[path];
+                if (files) {
+                    performScan(files.map(f => path + '\\' + f));
+                }
+            });
+        });
+
+        document.getElementById('quickScanBtn').addEventListener('click', () => {
+            const criticalDirs = [
+                ...windowsSystemFiles['C:\\Windows\\System32'].slice(0, 10).map(f => 'C:\\Windows\\System32\\' + f),
+                ...windowsSystemFiles['C:\\Users\\Downloads'].slice(0, 10).map(f => 'C:\\Users\\Downloads\\' + f),
+                ...windowsSystemFiles['C:\\Users\\AppData\\Local'].slice(0, 5).map(f => 'C:\\Users\\AppData\\Local\\' + f)
+            ];
+            performScan(criticalDirs);
+        });
+
+        document.getElementById('startCustomScanBtn').addEventListener('click', () => {
+            const path = document.getElementById('customPath').value;
+            if (path.trim()) {
+                document.getElementById('customPathContainer').classList.add('hidden');
+                const fileCount = Math.floor(Math.random() * 30) + 15;
+                const customFiles = simulatedFiles.map(f => path + '\\' + f).slice(0, fileCount);
+                performScan(customFiles);
+            }
+        });
+
+        document.getElementById('customPath').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('startCustomScanBtn').click();
+            }
+        });
+
+        document.getElementById('customScanBtn').addEventListener('click', () => {
+            const container = document.getElementById('customPathContainer');
+            container.classList.toggle('hidden');
+        });
+
+        document.getElementById('startCustomScanBtn').addEventListener('click', () => {
+            const path = document.getElementById('customPath').value;
+            if (path.trim()) {
+                document.getElementById('customPathContainer').classList.add('hidden');
+                const fileCount = Math.floor(Math.random() * 30) + 15;
+                const customFiles = simulatedFiles.map(f => path + '/' + f).slice(0, fileCount);
+                performScan(customFiles);
+            }
+        });
+
+        document.getElementById('stopScanBtn').addEventListener('click', () => {
+            isScanning = false;
+            completeScan();
+            document.getElementById('scanStatus').textContent = 'Scan stopped by user';
+            document.getElementById('spinner').style.display = 'none';
+        });
+
+        document.getElementById('customPath').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('startCustomScanBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
